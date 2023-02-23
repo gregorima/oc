@@ -1,8 +1,8 @@
 var bgImg
-var fish1Img, fish2Img, fish3Img
+var fish1Img, fish2Img, fish3Img, fishDeadImg
 var shoeImg, shoe2Img
 var vacuumerImg
-var wrapperImg, bagImg, bag2Img, fishingearImg, strawImg, bcapImg   
+var wrapperImg, bagImg, bag2Img, bag3Img, fishingearImg, strawImg, bcapImg   
 var jewelleryImg, treasureImg, coinImg
 var logo
 var startImg
@@ -11,8 +11,10 @@ var playButton
 var player;
 
 var obstaclesGroup;
+var trashGroup;
 
 var gameState = 0;
+var score = 0;
 
 function preload() {
   bgImg = loadImage("./assets/ocean.png")
@@ -25,11 +27,13 @@ function preload() {
   wrapperImg = loadImage("./assets/wrapper.png")
   bagImg = loadImage("./assets/plastic-bag.png")
   bag2Img = loadImage("./assets/bag2.png")
+  bag3Img = loadImage("./assets/bag.png")
   fishingearImg = loadImage("./assets/fishingear.png")
   strawImg = loadImage("./assets/straw.png")
   bcapImg = loadImage("./assets/bcap.png")
   startImg  = loadImage("./assets/start.png")
   logo = loadImage("./assets/logo.png")
+  fishDeadImg = loadImage("./assets/fishdead.png")
 
 }
 
@@ -42,8 +46,10 @@ function setup() {
   player.setVelocity(0,-2)
 
   obstaclesGroup = new Group();
+  trashGroup = new Group();
 
   createObstacles()
+  createTrash()
 }
 
 function draw() {
@@ -74,10 +80,24 @@ function draw() {
     player.position.y -=10
    }
 
+   if(player.collide(obstaclesGroup)) {
+    gameState = 2
+    gameOver();
+   }
+    player.overlap(trashGroup,function(a,b) {
+      b.remove();
+      score+=5
+    })
+
    camera.position.y = player.position.y-100
 
   drawSprites()
  }
+ if(gameState === 2) {
+  obstaclesGroup.destroyEach();
+  trashGroup.destroyEach();
+ }
+
 }
 
 function createObstacles() {
@@ -101,4 +121,35 @@ function createObstacles() {
   }
 }
 
+function createTrash() {
+  for(var i = 0; i<15; i++) {
+    var x = random(100, width-100)
+    var y = random(-height*4.5, height-400)
+    var xvelo = random(-2, 2)
+    var trash = createSprite(x,y)
+    trash.setVelocity(xvelo,2)
+    var randotrash = Math.round(random(1,7))
+    switch(randotrash) {
+      case 1: trash.addImage(bagImg); trash.scale = 0.1; break;
+      case 2: trash.addImage(bag2Img); trash.scale = 0.1; break;
+      case 3: trash.addImage(bcapImg); trash.scale = 0.07; break;
+      case 4: trash.addImage(fishingearImg); trash.scale = 0.27; break;
+      case 5: trash.addImage(bag3Img); trash.scale = 0.27; break;
+      case 6: trash.addImage(shoe2Img); trash.scale = 0.05; break;
+      case 7: trash.addImage(strawImg); trash.scale = 0.27; break;
+    }
+    trash.addToGroup(trashGroup)
+  }
+}
 
+function gameOver() {
+  swal({
+    title: "Fim de jogo",
+    text: "Você matou um peixe :(",
+    imageUrl: "./assets/fishdead.png",
+    imageSize: "100x100",
+    confirmButtonText: "Jogar de novo"
+  }, function(clicked) {if(clicked) {
+    location.reload()
+  }})
+}
